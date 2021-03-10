@@ -14,7 +14,7 @@ const db = generateDB(() => {
   fact("notequal", symbol("A"), symbol("B"), (db, a, b) => {
     if (a.kind !== Logic.Concrete) return [];
     if (b.kind !== Logic.Concrete) return [];
-    return a.value !== b.value ? [[a, b]] : [];
+    return a.value !== b.value ? [[a.value, b.value]] : [];
   });
   from(
     fact("father", symbol("X"), symbol("Y")),
@@ -27,6 +27,6 @@ const db = generateDB(() => {
     fact("sibling", symbol("Y"), symbol("Z")),
   );
 });
-console.log(db);
+
 const request = concretize(db, fact("sibling", symbol("A"), symbol("B")));
 console.log([...request].map((pair) => JSON.stringify(pair)).join("\n"));

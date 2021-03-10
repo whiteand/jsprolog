@@ -1,7 +1,6 @@
 import { IConcrete, IDatabase, ISymbol, Logic, TFact } from "../types.ts";
 import { concretize } from "./concretize.ts";
 import { concretizePlainFact } from "./concretizePlainFact.ts";
-import { factToString } from "../help.ts";
 
 export function* concretizeRule(db: IDatabase, fact: TFact): Generator<any[]> {
   if (fact.kind === Logic.GeneratorFact) {
@@ -48,9 +47,6 @@ function* concretizeConjunction(
     yield* concretizePlainFact(db, fact);
     return;
   }
-  console.log(
-    `Resolving: ${deps.map(factToString).join(" | ")} -> ${factToString(fact)}`,
-  );
   for (let depInd = 0; depInd < deps.length; depInd++) {
     const dep = deps[depInd];
 

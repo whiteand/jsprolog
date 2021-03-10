@@ -1,4 +1,3 @@
-import { factToString } from "../help.ts";
 import { IConcrete, IDatabase, Logic, TFact } from "../types.ts";
 import { update } from "../utils.ts";
 import { concretize } from "./concretize.ts";
@@ -8,8 +7,18 @@ export function* concretizePlainFact(
   db: IDatabase,
   requestFact: TFact,
 ): Generator<any[]> {
-  if (requestFact.kind === Logic.GeneratorFact) {
-    for (const value of requestFact.generator(db, ...requestFact.params)) {
+  const storedFacts = db.factsDict[requestFact.name];
+  if (!storedFacts || storedFacts.length === 0) {
+    if (requestFact.params.every((p) => p.kind === Logic.Concrete)) {
+      yield (requestFact.params as IConcrete<unknown>[]).map((p) => p.value);
+    }
+    return;
+  }
+  if (storedFacts[0].kind === Logic.GeneratorFact) {
+    if (storedFacts.length !== 1) {
+      throw new Error("There should be only one definition per each generator");
+    }
+    for (const value of storedFacts[0].generator(db, ...requestFact.params)) {
       yield value;
     }
     return;
@@ -18,10 +27,6 @@ export function* concretizePlainFact(
     yield (requestFact.params as IConcrete<unknown>[]).map((p) => p.value);
     return;
   }
-  if (!db.factsDict[requestFact.name]) {
-    return;
-  }
-  console.log(`request ${factToString(requestFact)}`);
   factLoop:
   for (const storedFact of db.factsDict[requestFact.name]) {
     paramLoop:
