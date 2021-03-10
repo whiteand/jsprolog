@@ -1,5 +1,6 @@
-import { getStack } from "./stacks";
-import { IAnd, IConjunction, IFact, IOr, Logic } from "./types";
+import { invariant } from "./invariant.ts";
+import { getStack } from "./stacks.ts";
+import { IAnd, IConjunction, IFact, IOr, Logic } from "./types.ts";
 
 type CNFItem = (IFact | IOr | IAnd);
 
@@ -16,37 +17,43 @@ export function from(...args: any[]) {
   const stack = getStack();
   for (let i = 0; i < arity; i++) {
     const item = stack.pop();
-    if (item.kind & (~(Logic.Or | Logic.And | Logic.Fact))) {
-      throw new Error(
-        "Only 'or', 'and', and 'fact' allowed to be used inside 'from' ",
+    invariant(!!item, "item expected");
+    if (i % 2 === 0) {
+      invariant(item.kind === Logic.Fact, "expected fact");
+    } else {
+      invariant(
+        item.kind === Logic.Or || item.kind === Logic.And,
+        "expected operation",
       );
     }
-    params.push(item as CNFItem);
+    params.push(item);
   }
+  params.reverse();
   const conjunctions: IConjunction[] = [];
   let state = State.WaitingForFirstConjunctionFact;
-  let currentIndex = arity - 1;
-  while ((state & State.Finished) === 0 && currentIndex >= 0) {
+  let currentIndex = 0;
+  while ((state & State.Finished) === 0 && currentIndex < arity) {
     switch (state) {
       case State.WaitingForFirstConjunctionFact:
-        const mustBeFact = params[currentIndex--];
-        if (!(mustBeFact.kind & Logic.Fact)) {
-          throw new Error("waiting for fact inside from");
-        }
+        const mustBeFact = params[currentIndex++];
+        invariant(
+          mustBeFact.kind === Logic.Fact,
+          "waiting for fact inside from",
+        );
         conjunctions.push({
           kind: Logic.Conjunction,
-          facts: [mustBeFact as IFact],
+          facts: [mustBeFact],
         });
         state = State.WaitingForOperation;
         break;
       case State.WaitingForOperation:
         const mustBeOperation = params[currentIndex];
-        if (0 === (mustBeOperation.kind & (Logic.Or | Logic.And))) {
-          throw new Error(
-            'There should be operation: "or" or "and" inside from function',
-          );
-        }
-        currentIndex--;
+        invariant(
+          mustBeOperation.kind === Logic.Or ||
+            mustBeOperation.kind === Logic.And,
+          'There should be operation: "or" or "and" inside from function',
+        );
+        currentIndex++;
         if (mustBeOperation.kind === Logic.Or) {
           state = State.WaitingForFirstConjunctionFact;
         } else {
@@ -54,7 +61,7 @@ export function from(...args: any[]) {
         }
         break;
       case State.WaitingForRestConjunctionFact:
-        const mustBeRestFact = params[currentIndex--];
+        const mustBeRestFact = params[currentIndex++];
         if (mustBeRestFact.kind !== Logic.Fact) {
           throw new Error("Expected fact but something else occurred in ");
         }
@@ -65,14 +72,16 @@ export function from(...args: any[]) {
         break;
     }
   }
-  if (state === State.WaitingForOperation) {
-    conjunctions.reverse();
-    conjunctions.forEach((conj) => conj.facts.reverse());
-    stack.push({
-      kind: Logic.CNF,
-      conjunctions,
-    });
-  } else {
-    throw new Error("There should be another fact in the from function call");
-  }
+
+  invariant(
+    state === State.WaitingForOperation,
+    "There should be another fact in the from function call",
+  );
+
+  conjunctions.reverse();
+  conjunctions.forEach((conj) => conj.facts.reverse());
+  stack.push({
+    kind: Logic.CNF,
+    conjunctions,
+  });
 }

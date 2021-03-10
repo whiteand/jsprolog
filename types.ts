@@ -1,13 +1,14 @@
 export enum Logic {
-  Symbol = 1,
-  Fact = 2,
-  And = 4,
-  Or = 8,
-  From = 12, // And | Or,
-  Rule = 14, // From | Fact
-  Conjunction = 16,
-  CNF = 24, // Conjunction | Or
-  Data = 32,
+  Symbol = "Symbol",
+  Fact = "Fact",
+  And = "And",
+  Or = "Or",
+  From = "From",
+  Rule = "Rule",
+  Conjunction = "Conjunction",
+  CNF = "CNF",
+  Data = "Data",
+  Concrete = "Concrete",
 }
 
 export interface IAnd {
@@ -20,7 +21,7 @@ export interface IOr {
 export interface IFact {
   kind: Logic.Fact;
   name: string;
-  params: ISymbol[];
+  params: (ISymbol | IConcrete<any>)[];
 }
 
 export interface ISymbol {
@@ -38,22 +39,22 @@ export interface ICNF {
   conjunctions: IConjunction[];
 }
 
-export interface IFrom {
-  kind: Logic.From;
-  cnf: ICNF;
-}
-
 export interface IRule {
   kind: Logic.Rule;
-  from: IFrom;
+  from: ICNF;
   follows: IFact;
+}
+
+export interface IConcrete<T> {
+  kind: Logic.Concrete;
+  value: T;
 }
 
 export type StackItem =
   | ISymbol
+  | IConcrete<any>
   | IFact
   | IAnd
   | IOr
-  | IFrom
   | ICNF
   | IRule;

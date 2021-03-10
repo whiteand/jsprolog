@@ -1,5 +1,5 @@
-import { withNewStack } from "./stacks";
-import { IFact, IRule, Logic } from "./types";
+import { withNewStack } from "./stacks.ts";
+import { IFact, IRule, Logic } from "./types.ts";
 
 export function generateDB(callback: () => void) {
   const factsAndRules = withNewStack(callback);

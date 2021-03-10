@@ -1,4 +1,4 @@
-import { StackItem } from "./types";
+import { StackItem } from "./types.ts";
 
 const stacks: StackItem[][] = [];
 
