@@ -5,18 +5,28 @@ import { from } from "./from.ts";
 import { generateDB } from "./generateDB.ts";
 import { symbol } from "./symbol.ts";
 import { and } from "./and.ts";
+import { concretize } from "./concretize/concretize.ts";
+import { Logic } from "./types.ts";
 
 const db = generateDB(() => {
   fact("father", concrete("sergey"), concrete("andrew"));
   fact("father", concrete("sergey"), concrete("bohdan"));
+  fact("notequal", symbol("A"), symbol("B"), (db, a, b) => {
+    if (a.kind !== Logic.Concrete) return [];
+    if (b.kind !== Logic.Concrete) return [];
+    return a.value !== b.value ? [[a, b]] : [];
+  });
   from(
     fact("father", symbol("X"), symbol("Y")),
-    and(),
+    and,
     fact("father", symbol("X"), symbol("Z")),
+    and,
+    fact("notequal", symbol("Y"), symbol("Z")),
   );
   follows(
     fact("sibling", symbol("Y"), symbol("Z")),
   );
 });
-
-console.log(Deno.inspect(db, { colors: true, depth: 100 }));
+console.log(db);
+const request = concretize(db, fact("sibling", symbol("A"), symbol("B")));
+console.log([...request].map((pair) => JSON.stringify(pair)).join("\n"));

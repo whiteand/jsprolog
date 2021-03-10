@@ -1,25 +1,36 @@
-import { invariant } from "./invariant.ts";
+import { getFactKey } from "./getFactKey.ts";
 import { getStack } from "./stacks.ts";
-import { IConcrete, ISymbol, Logic } from "./types.ts";
+import { GenerateFunc, IConcrete, ISymbol, Logic, TFact } from "./types.ts";
 
-export function fact(name: string, ...args: unknown[]) {
-  const arity = args.length;
-  const key = `${name}/${arity}`;
-  const stack = getStack();
-  const params: (ISymbol | IConcrete<unknown>)[] = [];
-  for (let i = 0; i < arity; i++) {
-    const stackItem = stack.pop();
-    invariant(!!stackItem, "symbol or concrete expected");
-    invariant(
-      stackItem.kind === Logic.Symbol || stackItem.kind === Logic.Concrete,
-      "Expected symbol or concrete",
-    );
-    params.push(stackItem);
+type TParams = [
+  ...(ISymbol | IConcrete<unknown>)[],
+  ...([GenerateFunc] | []),
+];
+
+function getFactFrom(name: string, params: TParams): TFact {
+  if (typeof params[params.length - 1] === "function") {
+    return {
+      kind: Logic.GeneratorFact,
+      params: params.slice(0, -1) as (ISymbol | IConcrete<any>)[],
+      name: getFactKey(name, params.length - 1),
+      generator: params[params.length - 1] as GenerateFunc,
+    };
   }
-  params.reverse();
-  stack.push({
+  return {
     kind: Logic.Fact,
-    name: key,
-    params,
-  });
+    name: getFactKey(name, params.length),
+    params: params as (ISymbol | IConcrete<unknown>)[],
+  };
+}
+
+export function fact<P extends TParams>(name: string, ...params: P): TFact {
+  const fact = getFactFrom(name, params);
+
+  const stack = getStack();
+
+  if (stack) {
+    stack.push(fact);
+  }
+
+  return fact;
 }

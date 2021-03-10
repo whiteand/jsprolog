@@ -1,10 +1,5 @@
-import { getStack } from "./stacks.ts";
 import { IAnd, Logic } from "./types.ts";
 
-const AND: IAnd = {
+export const and: IAnd = Object.freeze({
   kind: Logic.And,
-};
-export function and(): void {
-  const stack = getStack();
-  stack.push(AND);
-}
+});

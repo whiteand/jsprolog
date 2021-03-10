@@ -1,14 +1,15 @@
 export enum Logic {
+  Concrete = "Concrete",
   Symbol = "Symbol",
   Fact = "Fact",
+  GeneratorFact = "GeneratorFact",
   And = "And",
   Or = "Or",
   From = "From",
-  Rule = "Rule",
   Conjunction = "Conjunction",
   CNF = "CNF",
-  Data = "Data",
-  Concrete = "Concrete",
+  Rule = "Rule",
+  Database = "Database",
 }
 
 export interface IAnd {
@@ -18,11 +19,23 @@ export interface IOr {
   kind: Logic.Or;
 }
 
-export interface IFact {
+interface IEnumFact {
   kind: Logic.Fact;
   name: string;
   params: (ISymbol | IConcrete<any>)[];
 }
+
+export type GenerateFunc = (
+  db: IDatabase,
+  ...args: (ISymbol | IConcrete<any>)[]
+) => Iterable<any[]>;
+
+interface IGeneratorFact extends Omit<IEnumFact, "kind"> {
+  kind: Logic.GeneratorFact;
+  generator: GenerateFunc;
+}
+
+export type TFact = IEnumFact | IGeneratorFact;
 
 export interface ISymbol {
   kind: Logic.Symbol;
@@ -31,7 +44,7 @@ export interface ISymbol {
 
 export interface IConjunction {
   kind: Logic.Conjunction;
-  facts: IFact[];
+  facts: TFact[];
 }
 
 export interface ICNF {
@@ -42,7 +55,7 @@ export interface ICNF {
 export interface IRule {
   kind: Logic.Rule;
   from: ICNF;
-  follows: IFact;
+  follows: TFact;
 }
 
 export interface IConcrete<T> {
@@ -51,10 +64,14 @@ export interface IConcrete<T> {
 }
 
 export type StackItem =
-  | ISymbol
-  | IConcrete<any>
-  | IFact
-  | IAnd
-  | IOr
+  | TFact
   | ICNF
   | IRule;
+
+export interface IDatabase {
+  kind: Logic.Database;
+  factsKeys: string[];
+  factsDict: Record<string, TFact[]>;
+  rulesKeys: string[];
+  rulesDict: Record<string, IRule[]>;
+}

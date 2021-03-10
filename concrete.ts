@@ -1,10 +1,8 @@
-import { getStack } from "./stacks.ts";
-import { Logic } from "./types.ts";
+import { IConcrete, Logic } from "./types.ts";
 
-export function concrete(value: unknown): void {
-  const stack = getStack();
-  stack.push({
+export function concrete<T>(value: T): IConcrete<T> {
+  return {
     kind: Logic.Concrete,
     value,
-  });
+  };
 }

@@ -12,11 +12,9 @@ export function withNewStack(
   return newStack;
 }
 
-export function getStack(): StackItem[] {
+export function getStack(): StackItem[] | null {
   if (stacks.length <= 0) {
-    throw new Error(
-      "Probably you used jsprolog functions out of the createDB function",
-    );
+    return null;
   }
   return stacks[stacks.length - 1];
 }

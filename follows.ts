@@ -1,6 +1,6 @@
 import { invariant } from "./invariant.ts";
 import { getStack } from "./stacks.ts";
-import { Logic } from "./types.ts";
+import { TFact, Logic } from "./types.ts";
 
 /**
  * @example
@@ -12,13 +12,10 @@ import { Logic } from "./types.ts";
  *   fact('grandfather', symbol('X'), symbol('Z'))
  * )
  */
-export function follows(...args: any[]) {
+export function follows(fact: TFact): void {
   const stack = getStack();
-  const fact = stack.pop();
-  invariant(
-    !!fact && fact.kind === Logic.Fact,
-    "Follows should contain a single fact",
-  );
+  invariant(!!stack, "you can call follows only inside generateDB");
+  stack.pop();
   const cnf = stack.pop();
   invariant(!!cnf && cnf.kind === Logic.CNF, "Expected CNF");
   stack.push({

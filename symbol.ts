@@ -1,15 +1,15 @@
 import { getStack } from "./stacks.ts";
-import { Logic } from "./types.ts";
+import { ISymbol, Logic } from "./types.ts";
 
 /**
  * Represents single abstract value
  * @example symbol('X') - mean assume some "X"
- * @see concrete compare with concrete('X') - mean the exact string value 'X'
+ * 
+ * it can be associate with some concrete value during concretize function
  */
-export function symbol(name: string) {
-  const stack = getStack();
-  stack.push({
+export function symbol(name: string): ISymbol {
+  return {
     kind: Logic.Symbol,
     name,
-  });
+  };
 }
