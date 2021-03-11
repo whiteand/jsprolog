@@ -1,77 +1,48 @@
+import {
+  List,
+  Map,
+} from "https://deno.land/x/immutable@4.0.0-rc.12-deno.1/mod.ts";
+
 export enum Logic {
-  Concrete = "Concrete",
   Symbol = "Symbol",
-  Fact = "Fact",
-  GeneratorFact = "GeneratorFact",
-  And = "And",
-  Or = "Or",
-  From = "From",
-  Conjunction = "Conjunction",
-  CNF = "CNF",
-  Rule = "Rule",
-  Database = "Database",
+  Concrete = "Concrete",
+  Statement = "Statement",
+  DependentStatement = "DependentStatement",
+  Relation = "Relation",
+  Negation = "Negation",
 }
-
-export interface IAnd {
-  kind: Logic.And;
-}
-export interface IOr {
-  kind: Logic.Or;
-}
-
-interface IEnumFact {
-  kind: Logic.Fact;
-  name: string;
-  params: (ISymbol | IConcrete<any>)[];
-}
-
-export type GenerateFunc = (
-  db: IDatabase,
-  ...args: (ISymbol | IConcrete<any>)[]
-) => Iterable<any[]>;
-
-interface IGeneratorFact extends Omit<IEnumFact, "kind"> {
-  kind: Logic.GeneratorFact;
-  generator: GenerateFunc;
-}
-
-export type TFact = IEnumFact | IGeneratorFact;
 
 export interface ISymbol {
   kind: Logic.Symbol;
   name: string;
 }
-
-export interface IConjunction {
-  kind: Logic.Conjunction;
-  facts: TFact[];
-}
-
-export interface ICNF {
-  kind: Logic.CNF;
-  conjunctions: IConjunction[];
-}
-
-export interface IRule {
-  kind: Logic.Rule;
-  from: ICNF;
-  follows: TFact;
-}
-
-export interface IConcrete<T> {
+export interface IConcrete {
   kind: Logic.Concrete;
-  value: T;
+  value: any;
+}
+export type TParam = ISymbol | IConcrete;
+export interface IStatement {
+  kind: Logic.Statement;
+  name: string;
+  params: List<TParam>;
+}
+export interface IDependentStatement {
+  kind: Logic.DependentStatement;
+  name: string;
+  params: List<TParam>;
+  deps: List<TKnowledge>;
 }
 
-export type StackItem =
-  | TFact
-  | ICNF
-  | IRule;
-
-export interface IDatabase {
-  kind: Logic.Database;
-  factsKeys: string[];
-  factsDict: Record<string, TFact[]>;
-  rulesKeys: string[];
-  rulesDict: Record<string, IRule[]>;
+interface IRule {
+  kind: Logic.Relation;
+  name: string;
+  apply: (db: TDatabase, ...args: TParam[]) => Iterable<TKnowledge>;
 }
+
+export interface INegation {
+  kind: Logic.Negation;
+  statement: IStatement | IDependentStatement;
+}
+
+export type TKnowledge = IStatement | IDependentStatement | IRule | INegation;
+export type TDatabase = Map<string, List<TKnowledge>>;
