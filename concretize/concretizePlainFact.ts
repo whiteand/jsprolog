@@ -14,6 +14,12 @@ export function* concretizePlainFact(
     }
     return;
   }
+  console.log(
+    requestFact.name,
+    requestFact.params.map((p) =>
+      p.kind === Logic.Concrete ? JSON.stringify(p.value) : `<${p.name}>`
+    ).join(" "),
+  );
   if (storedFacts[0].kind === Logic.GeneratorFact) {
     if (storedFacts.length !== 1) {
       throw new Error("There should be only one definition per each generator");

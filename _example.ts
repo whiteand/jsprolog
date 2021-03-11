@@ -28,5 +28,9 @@ const db = generateDB(() => {
   );
 });
 
-const request = concretize(db, fact("sibling", symbol("A"), symbol("B")));
+const request = concretize(
+  db,
+  fact("sibling", concrete("andrew"), symbol("B")),
+);
+
 console.log([...request].map((pair) => JSON.stringify(pair)).join("\n"));
