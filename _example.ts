@@ -30,7 +30,9 @@ const db = generateDB(() => {
 
 const request = concretize(
   db,
-  fact("sibling", concrete("andrew"), symbol("B")),
+  fact("sibling", symbol("A"), symbol("B")),
 );
 
 console.log([...request].map((pair) => JSON.stringify(pair)).join("\n"));
+// ['andrew', 'bohdan']
+// ['bohdan', 'andrew']
