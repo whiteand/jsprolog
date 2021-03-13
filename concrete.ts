@@ -4,6 +4,8 @@ import { isSameValue } from "./isSameValue.ts";
 import { toString } from "./toString.ts";
 import {
   IConcrete,
+  IDependentStatement,
+  INegation,
   IStatement,
   ISymbol,
   Logic,
@@ -100,6 +102,73 @@ function* concreteStatementWithStatement(
   }
 }
 
+function applyRule(rule: IDependentStatement, params: List<TParam>) {
+  invariant(
+    params.size === rule.params.size,
+    `params.size === rule.params.size should be truthy`,
+  );
+  let newParams = rule.params;
+  let newDeps = rule.deps;
+  let args = params;
+
+  fromStart:
+  while (true) {
+    paramLoop:
+    for (let i = 0; i < args.size; i++) {
+      const arg = args.get(i);
+      invariant(!!arg, "arg should be present");
+      const param = newParams.get(i);
+      invariant(!!param, "param should be present");
+      if (arg.kind === Logic.Concrete) {
+        if (param.kind === Logic.Concrete) {
+          if (isSameValue(param.value, arg.value)) {
+            continue paramLoop;
+          } else {
+            return null;
+          }
+        } else {
+          newParams = assignConcreteValue(param.name, arg, newParams);
+          continue fromStart;
+        }
+      } else if (param.kind === Logic.Symbol) {
+        if (param.name !== arg.name) {
+          params = replaceSymbol(param.name, arg, params);
+          continue fromStart;
+        }
+        continue paramLoop;
+      } else {
+        args = assignConcreteValue(arg.name, param, args);
+        continue fromStart;
+      }
+    }
+    return {
+      args,
+      params; newParams,
+      deps: newDeps,
+    };
+  }
+}
+
+function* concreteStatementWithDependentStatement(
+  db: TDatabase,
+  probablyStatement: IStatement,
+  fact: IDependentStatement,
+) {
+  const deps = fact.deps;
+  if (deps.size === 0) {
+    yield* concreteStatementWithStatement(db, probablyStatement, {
+      kind: Logic.Statement,
+      name: fact.name,
+      params: fact.params,
+    });
+    return;
+  }
+  const appliedRule = applyRule(fact, probablyStatement.params);
+  if (!appliedRule) return
+  const { args, params, deps } = appliedRule
+  // TODO: finish it
+}
+
 function* concreteStatement(db: TDatabase, probablyStatement: IStatement) {
   const facts = db.get(probablyStatement.name);
   if (!facts) {
@@ -112,6 +181,15 @@ function* concreteStatement(db: TDatabase, probablyStatement: IStatement) {
       case Logic.Statement:
         yield* concreteStatementWithStatement(db, probablyStatement, fact);
         break;
+      case Logic.Rule:
+        yield* fact.apply(db, ...probablyStatement.params);
+        break;
+      case Logic.DependentStatement:
+        yield* concreteStatementWithDependentStatement(
+          db,
+          probablyStatement,
+          fact,
+        );
       default:
         continue;
     }

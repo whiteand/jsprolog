@@ -6,7 +6,7 @@ import { concrete } from "./concrete.ts";
 import { toString } from "./toString.ts";
 import {
   IConcrete,
-  INegation,
+  IDependentStatement,
   IStatement,
   Logic,
   TKnowledge,
@@ -22,22 +22,18 @@ const fatherRelation = List<IStatement>([
 ]);
 
 const db = Map<string, List<TKnowledge>>([["father", fatherRelation], [
-  "notfather",
-  List<INegation>([
+  "brother",
+  List<IDependentStatement>([
     {
-      kind: Logic.Negation,
-      statement: {
-        kind: Logic.Statement,
-        name: "father",
-        params: List([{ kind: Logic.Concrete, value: "sergey" }, {
-          kind: Logic.Concrete,
-          value: "elena",
-        }]),
-      },
+      kind: Logic.DependentStatement,
+      name: "brother",
+      params: List([]),
+      deps: List([
+        // Add deps
+      ]),
     },
   ]),
 ]]);
-
 for (
   const r of concrete(db, {
     kind: Logic.Statement,

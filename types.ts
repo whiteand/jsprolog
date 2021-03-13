@@ -9,7 +9,6 @@ export enum Logic {
   Statement = "Statement",
   DependentStatement = "DependentStatement",
   Rule = "Rule",
-  Negation = "Negation",
 }
 
 export interface ISymbol {
@@ -39,10 +38,5 @@ interface IRule {
   apply: (db: TDatabase, ...args: TParam[]) => Iterable<TKnowledge>;
 }
 
-export interface INegation {
-  kind: Logic.Negation;
-  statement: IStatement | IDependentStatement;
-}
-
-export type TKnowledge = IStatement | IDependentStatement | IRule | INegation;
+export type TKnowledge = IStatement | IDependentStatement | IRule;
 export type TDatabase = Map<string, List<TKnowledge>>;
