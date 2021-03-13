@@ -3,6 +3,7 @@ import {
   Map,
 } from "https://deno.land/x/immutable@4.0.0-rc.12-deno.1/mod.ts";
 import { concrete } from "./concrete.ts";
+import { toString } from "./toString.ts";
 import {
   IConcrete,
   INegation,
@@ -37,14 +38,15 @@ const db = Map<string, List<TKnowledge>>([["father", fatherRelation], [
   ]),
 ]]);
 
-for (const r of concrete(db, {
-  kind: Logic.Statement,
-  name: "father",
-  params: List([
-    { kind: Logic.Symbol, name: "X" },
-    { kind: Logic.Symbol, name: "Y" },
-  ]),
-})) {
-    console.log(r)
-    break;
+for (
+  const r of concrete(db, {
+    kind: Logic.Statement,
+    name: "father",
+    params: List([
+      { kind: Logic.Symbol, name: "Y" },
+      { kind: Logic.Concrete, value: "andrew" },
+    ]),
+  })
+) {
+  console.log(`result: ${toString(r)}`);
 }

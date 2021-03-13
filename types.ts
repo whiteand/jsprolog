@@ -8,7 +8,7 @@ export enum Logic {
   Concrete = "Concrete",
   Statement = "Statement",
   DependentStatement = "DependentStatement",
-  Relation = "Relation",
+  Rule = "Rule",
   Negation = "Negation",
 }
 
@@ -34,7 +34,7 @@ export interface IDependentStatement {
 }
 
 interface IRule {
-  kind: Logic.Relation;
+  kind: Logic.Rule;
   name: string;
   apply: (db: TDatabase, ...args: TParam[]) => Iterable<TKnowledge>;
 }
